@@ -1,0 +1,54 @@
+##############################################################
+# Flask basics:                                              #
+# http://0.0.0.0:8000/app/v1/configuration?x=y               #
+#                                                            #
+#    path             /foo/bar                               #
+#    full_path        /foo/bar?x=y                           #
+#    script_root      /app/v1                                #
+#    base_url         http://0.0.0.0:8000/app/v1/foo/bar     #
+#    url              http://0.0.0.0:8000/app/v1/foo/bar?x=y #
+#    url_root         http://0.0.0.0:8000/app/v1/            #
+##############################################################
+
+##############################################################
+# RULES SECTION                                              #
+##############################################################
+def registerRules():
+  app.add_url_rule("/app/v1/foo/bar", "answer_get", view_func=answer_get, methods=['GET'])
+  app.add_url_rule("/app/v1/foo/bar", "answer_post", view_func=answer_post, methods=['POST'])
+
+##############################################################
+# FUNCTIONS SECTION                                          #
+##############################################################
+import copy
+import json
+import subprocess
+import random
+
+responseBodyOK = {"resultCode":0}
+responseBodyNOK = {"resultCode":1}
+
+def answer_get():
+  response = copy.deepcopy(responseBodyOK)
+  response["resultData"] = "answering a get"
+
+  return response, HTTP_STATUS_CODE__SUCCESS__OK
+
+
+def answer_post():
+
+  responseStatusCode = HTTP_STATUS_CODE__SUCCESS__OK
+  resultData = "answering a post"
+
+  response = copy.deepcopy(responseBodyOK)
+  response["resultData"] = resultData
+  #response["requestBody"] = request.json
+
+  headers = {}
+  xversion = "1.1.0"
+  location = request.path + "/" + str(random.randint(10000,20000))
+
+  headers = {"x-version":xversion, "location":location}
+
+  return response, responseStatusCode, headers
+
