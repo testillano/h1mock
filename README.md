@@ -1,3 +1,5 @@
+[![Build docker image and publish to Docker Hub](https://github.com/testillano/h1mock/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/testillano/h1mock/actions/workflows/docker-publish.yml)
+
 # Python flask HTTP/1 Mock
 
 HTTP/1 mock server built with Python Flask and supported by docker/kubernetes.
