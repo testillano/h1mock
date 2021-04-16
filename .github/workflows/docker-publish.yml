@@ -46,7 +46,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           tags: testillano/h1mock:local
-          file: Dockerfile.build
+          file: Dockerfile
           context: .
           #push: true
       -
