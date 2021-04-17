@@ -1,4 +1,4 @@
-name: Build docker image and publish to Docker Hub
+name: CI
 on:
   # Build on demand:
   workflow_dispatch:
@@ -24,7 +24,7 @@ on:
   #  types: [published]
 
 jobs:
-  build_and_push:
+  docker_build_and_push:
     name: Build and push docker images to Docker Hub
     runs-on: ubuntu-latest
     #if: github.event_name == 'push'
@@ -75,3 +75,16 @@ jobs:
           docker tag testillano/h1mock:local $IMAGE_ID:$image_tag
 
           docker push $IMAGE_ID:$image_tag
+
+  helm_publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Publish Helm charts
+        uses: stefanprodan/helm-gh-pages@master
+        with:
+          #token: ${{ secrets.GITHUB_TOKEN }}
+          charts_dir: helm
+          repository: helm
+          branch: gh-pages
+          target_dir: charts
