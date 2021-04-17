@@ -22,7 +22,7 @@ This image is built with `./Dockerfile`.
 
 ## How it is delivered
 
-`h1mock` is delivered in a `helm` chart called `ert-h1mock` (`./helm/h1mock`) so you may integrate it in your regular `helm` chart deployments by just adding a few artifacts.
+`h1mock` is delivered in a `helm` chart called `h1mock` (`./helm/h1mock`) so you may integrate it in your regular `helm` chart deployments by just adding a few artifacts.
 
 ## How it integrates in a service
 
@@ -36,15 +36,15 @@ This image is built with `./Dockerfile`.
 
    ```yaml
    dependencies:
-     - name: ert-h1mock
+     - name: h1mock
        version: 1.0.0
        repository: alias:erthelm
-       alias: h1server
+       alias: server1
 
-     - name: ert-h1mock
+     - name: h1mock
        version: 1.0.0
        repository: alias:erthelm
-       alias: h1server2
+       alias: server2
    ```
 
 3. Refer to `h1mock` values through the corresponding dependency alias, for example `.Values.h1server.image` to access process repository and tag.
