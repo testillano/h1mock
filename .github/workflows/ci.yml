@@ -88,4 +88,4 @@ jobs:
           charts_dir: helm
           repository: helm
           branch: gh-pages
-          target_dir: charts
+          chart_version: ${{ github.event.inputs.tag }}
