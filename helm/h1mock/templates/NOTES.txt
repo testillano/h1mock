@@ -1,19 +1,35 @@
-1. Get the application URL by running these commands:
+1. Define variables to access application:
 {{- if .Values.ingress.enabled }}
 {{- range $host := .Values.ingress.hosts }}
   {{- range .paths }}
-  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ . }}
+   http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ . }}
   {{- end }}
 {{- end }}
 {{- else if contains "NodePort" .Values.service.type }}
-  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "h1mock-chart.fullname" . }})
-  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
-  echo http://$NODE_IP:$NODE_PORT
+
+   NODE_PORT=$(kubectl get -n {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "h1mock-chart.fullname" . }})
+   NODE_IP=$(kubectl get nodes -n {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+   echo http://$NODE_IP:$NODE_PORT
 {{- else if contains "LoadBalancer" .Values.service.type }}
-     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "h1mock-chart.fullname" . }}'
-  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "h1mock-chart.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+
+   NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+         You can watch the status of by running 'kubectl get -n {{ .Release.Namespace }} svc -w {{ include "h1mock-chart.fullname" . }}'
+   SERVICE_IP=$(kubectl get svc -n {{ .Release.Namespace }} {{ include "h1mock-chart.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
 {{- else if contains "ClusterIP" .Values.service.type }}
-  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "h1mock-chart.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
-  kubectl port-forward --namespace {{ .Release.Namespace }} $POD_NAME 8000:8000
+
+   POD=$(kubectl get pods -n {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "h1mock-chart.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
 {{- end }}
+
+2. Provision HTTP/2 Mock Server URL Rules & Functions:
+
+   Example:
+     kubectl cp -n {{ .Release.Namespace }} example/rules-and-functions ${POD}:/app/provision
+
+2. Send request
+
+   Via port-forward:
+     kubectl port-forward -n {{ .Release.Namespace }} ${POD} {{ .Values.service.port }}:{{ .Values.service.port }} &
+     curl -v -XGET http://localhost:{{ .Values.service.port }}/app/v1/foo/bar
+
+   Remotely:
+     kubectl exec -it -n {{ .Release.Namespace }} ${POD} -- sh -c "curl -v -XGET http://0.0.0.0:{{ .Values.service.port }}/app/v1/foo/bar"

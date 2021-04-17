@@ -22,7 +22,7 @@ This image is built with `./Dockerfile`.
 
 ## How it is delivered
 
-`h1mock` is delivered in a `helm` chart called `h1mock` (`./helm/h1mock`) so you may integrate it in your regular `helm` chart deployments by just adding a few artifacts.
+`h1mock` is delivered in a `helm` chart called `ert-h1mock` (`./helm/h1mock`) so you may integrate it in your regular `helm` chart deployments by just adding a few artifacts.
 
 ## How it integrates in a service
 
@@ -36,12 +36,12 @@ This image is built with `./Dockerfile`.
 
    ```yaml
    dependencies:
-     - name: h1mock
+     - name: ert-h1mock
        version: 1.0.0
        repository: alias:erthelm
        alias: h1server
 
-     - name: h1mock
+     - name: ert-h1mock
        version: 1.0.0
        repository: alias:erthelm
        alias: h1server2
@@ -58,10 +58,11 @@ Python3 make the rest: the new mock application is reloaded with the new behavio
 The user could provide new provisions by mean `kubectl cp` into `h1mock` container at `/app/provision` directory.
 You can see a provision example at `./example/rules-and-functions`.
 
-## Test example
+## Deploy & test
 
-Execute this script, and follow instructions:
+To deploy the `helm` chart, execute the following script, and follow instructions:
 
 ```bash
-./test.sh
+./helm/deploy.sh
 ```
+
