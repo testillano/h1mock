@@ -84,7 +84,7 @@ jobs:
       - name: Publish Helm charts
         uses: stefanprodan/helm-gh-pages@master
         with:
-          token: ${{ secrets.HELM_REPO_TOKEN }}
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN_REPO_FULL }}
           charts_dir: helm
           repository: helm
           branch: gh-pages
