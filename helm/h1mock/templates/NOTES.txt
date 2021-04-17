@@ -28,8 +28,9 @@
 2. Send request
 
    Via port-forward:
-     kubectl port-forward -n {{ .Release.Namespace }} ${POD} {{ .Values.service.port }}:{{ .Values.service.port }} &
-     curl -v -XGET http://localhost:{{ .Values.service.port }}/app/v1/foo/bar
+     LOCAL_PORT={{ .Values.service.port }} # change if needed
+     kubectl port-forward -n {{ .Release.Namespace }} ${POD} ${LOCAL_PORT}:{{ .Values.service.port }} &
+     curl -v -XGET http://localhost:${LOCAL_PORT}/app/v1/foo/bar
 
    Remotely:
      kubectl exec -it -n {{ .Release.Namespace }} ${POD} -- sh -c "curl -v -XGET http://0.0.0.0:{{ .Values.service.port }}/app/v1/foo/bar"

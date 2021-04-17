@@ -7,6 +7,7 @@
 APP_DIR="/app"
 PROV_DIR="${APP_DIR}/provision"
 PROVISION="${PROV_DIR}/rules-and-functions"
+SERVER_PORT=${1:-8000}
 
 #############
 # FUNCTIONS #
@@ -15,7 +16,7 @@ PROVISION="${PROV_DIR}/rules-and-functions"
 build_mock() {
   cp mock.pre mock.py.tmp
   cat "$1" >> mock.py.tmp
-  cat mock.post >> mock.py.tmp
+  sed 's/@{SERVER_PORT}/'${SERVER_PORT}'/' mock.post >> mock.py.tmp
   mv mock.py.tmp mock.py
 }
 
