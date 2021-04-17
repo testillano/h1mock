@@ -1,4 +1,4 @@
-[![Build docker image and publish to Docker Hub](https://github.com/testillano/h1mock/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/testillano/h1mock/actions/workflows/docker-publish.yml)
+[![Publish docker images and helm charts](https://github.com/testillano/h1mock/actions/workflows/publish.yml/badge.svg)](https://github.com/testillano/h1mock/actions/workflows/publish.yml)
 
 # Python flask HTTP/1 Mock
 
