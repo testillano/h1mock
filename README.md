@@ -63,6 +63,12 @@ You can see a provision example at `./example/rules-and-functions`.
 To deploy the `helm` chart, execute the following script, and follow instructions:
 
 ```bash
-./helm/deploy.sh
+./deploy.sh
+```
+
+You could provide a different service port than default (8000):
+
+```bash
+./deploy.sh 9000
 ```
 
