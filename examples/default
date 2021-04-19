@@ -1,0 +1,26 @@
+##############################################################
+# Flask basics:                                              #
+# http://0.0.0.0:8000/app/v1/configuration?x=y               #
+#                                                            #
+#    path             /foo/bar                               #
+#    full_path        /foo/bar?x=y                           #
+#    script_root      /app/v1                                #
+#    base_url         http://0.0.0.0:8000/app/v1/foo/bar     #
+#    url              http://0.0.0.0:8000/app/v1/foo/bar?x=y #
+#    url_root         http://0.0.0.0:8000/app/v1/            #
+##############################################################
+
+##############################################################
+# RULES SECTION                                              #
+##############################################################
+def registerRules():
+  app.register_error_handler(404, answer)
+
+##############################################################
+# FUNCTIONS SECTION                                          #
+##############################################################
+def answer(e):
+
+  help='<a href="https://github.com/testillano/h1mock#how-it-works">help here</a>'
+  return help, 404, {"Content-Type":"text/html"}
+

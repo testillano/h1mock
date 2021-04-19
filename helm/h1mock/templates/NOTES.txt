@@ -1,36 +1,54 @@
-1. Define variables to access application:
+ _____________________________________
+|  _    __                      _     |
+| | |  /_ |                    | |    |
+| | |__ | |_ __ ___   ___   ___| | __ |
+| | '_ \| | '_ ` _ \ / _ \ / __| |/ / |
+| | | | | | | | | | | (_) | (__|   <  |
+| |_| |_|_|_| |_| |_|\___/ \___|_|\_\ |
+|_____________________________________|
+
+ HTTP/1 mock server built with Python Flask and supported by docker/kubernetes
+ Version 1.0.z
+ https://github.com/testillano/h1mock
+
+ 1. Define variables to access application:
 {{- if .Values.ingress.enabled }}
 {{- range $host := .Values.ingress.hosts }}
   {{- range .paths }}
-   http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ . }}
+     http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ . }}
   {{- end }}
 {{- end }}
 {{- else if contains "NodePort" .Values.service.type }}
 
-   NODE_PORT=$(kubectl get -n {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "h1mock-chart.fullname" . }})
-   NODE_IP=$(kubectl get nodes -n {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
-   echo http://$NODE_IP:$NODE_PORT
+     NODE_PORT=$(kubectl get -n {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "h1mock-chart.fullname" . }})
+     NODE_IP=$(kubectl get nodes -n {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+     echo http://$NODE_IP:$NODE_PORT
 {{- else if contains "LoadBalancer" .Values.service.type }}
 
-   NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-         You can watch the status of by running 'kubectl get -n {{ .Release.Namespace }} svc -w {{ include "h1mock-chart.fullname" . }}'
-   SERVICE_IP=$(kubectl get svc -n {{ .Release.Namespace }} {{ include "h1mock-chart.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get -n {{ .Release.Namespace }} svc -w {{ include "h1mock-chart.fullname" . }}'
+     SERVICE_IP=$(kubectl get svc -n {{ .Release.Namespace }} {{ include "h1mock-chart.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
 {{- else if contains "ClusterIP" .Values.service.type }}
 
-   POD=$(kubectl get pods -n {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "h1mock-chart.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+     POD=$(kubectl get pods -n {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "h1mock-chart.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" --no-headers | awk '{ if ($3 == "Running") print $1 }')
 {{- end }}
 
-2. Provision HTTP/2 Mock Server URL Rules & Functions:
+ 2. Provision HTTP/2 Mock Server URL Rules & Functions, for example:
 
-   Example:
-     kubectl cp -n {{ .Release.Namespace }} example/rules-and-functions ${POD}:/app/provision
+     kubectl cp -n {{ .Release.Namespace }} examples/rules-and-functions ${POD}:/app/provision
 
-2. Send request
+ 3. Send request for that provision:
 
-   Via port-forward:
+    Via port-forward:
      LOCAL_PORT={{ .Values.service.port }} # change if needed
      kubectl port-forward -n {{ .Release.Namespace }} ${POD} ${LOCAL_PORT}:{{ .Values.service.port }} &
-     curl -v -XGET http://localhost:${LOCAL_PORT}/app/v1/foo/bar
+     curl -XGET http://localhost:${LOCAL_PORT}/app/v1/foo/bar
 
-   Remotely:
-     kubectl exec -it -n {{ .Release.Namespace }} ${POD} -- sh -c "curl -v -XGET http://0.0.0.0:{{ .Values.service.port }}/app/v1/foo/bar"
+    Remotely:
+     kubectl exec -it -n {{ .Release.Namespace }} ${POD} -- sh -c "curl -XGET http://0.0.0.0:{{ .Values.service.port }}/app/v1/foo/bar"
+
+ You can also reactivate an already existing provision file:
+   kubectl exec -it -n {{ .Release.Namespace }} ${POD} -- sh -c "touch provision/default"
+
+ This default provision answers 404 (Not Found) with a help URL, regardless the URL path provided:
+   kubectl exec -it -n {{ .Release.Namespace }} ${POD} -- sh -c "curl -XGET http://0.0.0.0:{{ .Values.service.port }}/any/path/"

@@ -25,5 +25,6 @@ spec:
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           args:
-          - "{{ .Values.service.port }}"
+          - {{ .Values.service.port | quote }}
+          - {{ .Values.b64provision | quote }}
 

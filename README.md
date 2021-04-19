@@ -51,24 +51,30 @@ This image is built with `./Dockerfile`.
 
 ## How it works
 
-The mock application is built on demand (lazy creation with default provision at first usage) by mean `inotify` utility.
-The starter script monitors the provision directory for a new file created (or modified), inserting the URL rules and functions given in the detected file.
-Python3 make the rest: the new mock application is reloaded with the new behaviour, acting as a provision system on-demand.
+The application is built on demand from pieces of source code which manage the server behavior.
+You can find source examples at `./examples` directory.
 
-The user could provide new provisions by mean `kubectl cp` into `h1mock` container at `/app/provision` directory.
-You can see a provision example at `./example/rules-and-functions`.
+The server configuration can be done in two ways:
 
-## Deploy & test
+### On deployment
 
-To deploy the `helm` chart, execute the following script, and follow instructions:
+The chart value `b64provision` could be used to set the source code represented as `base64` encoded string. This value is empty by default, so the deployment won't contain answer rules (always responds status code `404 Not Found` with an html response containing a help hyperlink).
+
+### On demand
+
+This is done through `kubectl cp` of the source file into `h1mock` container's path `/app/provision`. The utility `inotify` will detect the creation event to upgrade the server source activating the new behavior. You could send different server definitions and they will be loaded on demand. You could even reactivate any of the available provision files at remote directory, by mean touching them through `kubectl exec`.
+
+## Deploy and test
+
+To deploy the `helm` chart, execute this script, and follow instructions:
 
 ```bash
 ./deploy.sh
 ```
 
-You could provide a different service port than default (8000):
+You could provide additional `helm install` arguments like setters. In this way you could set an initial provision different than default, or configure a different service port (something that only can be done at deployment time):
 
 ```bash
-./deploy.sh 9000
+./deploy.sh --set b64provision="$(cat examples/rules-and-functions | base64 -w 0)" --set service.port=9000
 ```
 

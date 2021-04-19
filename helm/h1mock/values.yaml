@@ -31,6 +31,8 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
+b64provision: ""
+
 service:
   type: ClusterIP
   port: 8000
