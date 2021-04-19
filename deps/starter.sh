@@ -76,4 +76,5 @@ monitor_provision &
 # Start mock server
 python3 mock.py
 echo "INVALID PROVISION OR UNEXPECTED EXCEPTION"
+echo "RESTORING DEPLOYMENT PROVISION"
 

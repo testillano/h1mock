@@ -78,3 +78,9 @@ You could provide additional `helm install` arguments like setters. In this way 
 ./deploy.sh --set b64provision="$(cat examples/rules-and-functions | base64 -w 0)" --set service.port=9000
 ```
 
+There is a small bash script to do a minimal test of examples available, but it is better to look for notes deployed to play with provisions and traffic requests:
+
+```bash
+./test.sh
+```
+
