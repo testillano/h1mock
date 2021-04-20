@@ -1,6 +1,9 @@
-[![Publish docker images and helm charts](https://github.com/testillano/h1mock/actions/workflows/publish.yml/badge.svg)](https://github.com/testillano/h1mock/actions/workflows/publish.yml)
-
 # Python flask HTTP/1 Mock
+
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/testillano/h1mock/graphs/commit-activity)
+[![Ask Me Anything !](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://github.com/testillano)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Publish docker images and helm charts](https://github.com/testillano/h1mock/actions/workflows/publish.yml/badge.svg)](https://github.com/testillano/h1mock/actions/workflows/publish.yml)
 
 HTTP/1 mock server built with Python Flask and supported by docker/kubernetes.
 
