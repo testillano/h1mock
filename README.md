@@ -116,6 +116,8 @@ You could provide additional `helm install` arguments like setters. Thus, you co
 ./deploy.sh --set service.traffic_port=9000 --set service.admin_port=9001
 ```
 
+**WORK-IN-PROGRESS below**
+
 Testing is developed with `pytest` framework, just execute the following:
 
 ```bash
