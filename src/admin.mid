@@ -1,0 +1,73 @@
+##############################################################
+# Flask basics:                                              #
+# http://0.0.0.0:8000/app/v1/foo/bar?x=y                     #
+#                                                            #
+#    path             /foo/bar                               #
+#    full_path        /foo/bar?x=y                           #
+#    script_root      /app/v1                                #
+#    base_url         http://0.0.0.0:8000/app/v1/foo/bar     #
+#    url              http://0.0.0.0:8000/app/v1/foo/bar?x=y #
+#    url_root         http://0.0.0.0:8000/app/v1/            #
+##############################################################
+
+##############################################################
+# RULES SECTION                                              #
+##############################################################
+def registerRules():
+  app.add_url_rule("/healthz", "healthz", view_func=healthz, methods=['GET'])
+  app.add_url_rule("/app/v1/provision/<path:filebn>", "provision", view_func=provision, methods=['GET', 'POST'])
+
+##############################################################
+# FUNCTIONS SECTION                                          #
+##############################################################
+import subprocess
+
+def launchShellScript(cmd):
+  p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+  retcode = p.wait()
+  output = p.stdout.read()
+  stderr = p.stderr.read()
+  return retcode,output,stderr
+
+provisionDirectory = "/app/provision/"
+
+# Keppalive probe
+def healthz():
+  return "", HTTP_STATUS_CODE__SUCCESS__OK
+
+# Administrative provision
+def provision(filebn):
+
+  response = {"result":"success: basename file '{}' has been loaded".format(filebn)}
+
+  if request.method == "GET":
+    statusCode = HTTP_STATUS_CODE__SUCCESS__OK
+    cmd = "touch " + provisionDirectory + filebn
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    retcode = p.wait()
+    output = p.stdout.read()
+    stderr = p.stderr.read()
+
+    if retcode != 0:
+      response = {"result":"failed: {}".format(str(stderr))}
+      statusCode = HTTP_STATUS_CODE__SERVER_ERROR__INTERNAL_SERVER_ERROR
+
+  elif request.method == "POST":
+    statusCode = HTTP_STATUS_CODE__SUCCESS__CREATED
+    contentType = request.headers['content-type']
+    if (contentType != "text/plain"):
+      statusCode = HTTP_STATUS_CODE__CLIENT_ERROR__UNSUPPORTED_MEDIA_TYPE
+      response = {"result":"failed: content-type must be 'text/plain'"}
+    else:
+      with open(provisionDirectory + filebn, "w") as f:
+        f.write(request.data.decode())
+    #    statusCode = HTTP_STATUS_CODE__SERVER_ERROR__NOT_IMPLEMENTED = 501
+
+    # Form upload method (for example: curl -v -X POST -F file=@path-to-file http://<admin server>:8074/app/v1/provision)
+    # if 'file' in request.files:
+    #   file = request.files['file']
+    #   filename = secure_filename(file.filename)
+    #   file.save(os.path.join(provisionDirectory, filename))
+
+
+  return response, statusCode

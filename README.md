@@ -56,17 +56,51 @@ This image is built with `./Dockerfile`.
 ## How it works
 
 The application is built on demand from pieces of source code which manage the server behavior.
-You can find source examples at `./examples` directory.
 
-The server configuration can be done in two ways:
+You must use [flask API](https://flask.palletsprojects.com/en/1.1.x/) over `app` application (this instance name is mandatory, no other can be used) and define the *URL rules* inside a function which must be called `registerRules()`. For example:
 
-### On deployment
+```python
+def registerRules():
+  app.add_url_rule("/foo", "foo_get", view_func=foo_get, methods=['GET'])
+  app.add_url_rule("/bar", "bar_post", view_func=bar_post, methods=['POST'])
 
-The chart value `b64provision` could be used to set the source code represented as `base64` encoded string. This value is empty by default, so the deployment won't contain answer rules (always responds status code `404 Not Found` with an html response containing a help hyperlink).
+def foo_get:
+    # <here your code>
+
+def bar_post:
+    # <here your code>
+```
+
+So **these are the requirements**:
+- Flask application instance: `app`.
+
+- Mandatory rules registration definition: `registerRules()`.
+
+- No need to re-import those already available: `os`, `logging` and of course, `flask` (*Flask*, *Blueprint*, *jsonify*, *request*).
+
+More examples could be found at `./examples` directory.
+
+To configure the service, that source code could be provisioned in two ways:
+
+### On deployment time
+
+The chart value `provisionPath` shall be used to set a relative path to the `helm chart`. The value must be in place (even being a symlink). If this value is missing or empty, a default provision is established (which always responds status code `404 Not Found` with an `html` response containing a help hyper link). Example:
+
+```bash
+helm install myRelease -n myNamespace chartDir --set provisionPath=myProvision --wait
+```
+
+In this example, the file `myProvision` must be accessible from `helm chart` root level.
 
 ### On demand
 
-This is done through `kubectl cp` of the source file into `h1mock` container's path `/app/provision`. The utility `inotify` will detect the creation event to upgrade the server source activating the new behavior. You could send different server definitions and they will be loaded on demand. You could even reactivate any of the available provision files at remote directory, by mean touching them through `kubectl exec`.
+This can be done in two main ways:
+
+* Through `kubectl cp` of the source file into `h1mock` container's path `/app/provision`. The utility `inotify` will detect the creation event to upgrade the server source activating the new behavior. You could send different server definitions and they will be loaded on demand (this is thanks to [flask debug mode option](https://flask.palletsprojects.com/en/1.1.x/quickstart/#debug-mode)). You could even reactivate any of the available provision files within the docker internal directory, by mean touching them by mean `kubectl exec`. Note that the initial provision belongs to a read-only configMap, so the only way to reactivate it is copying a duplicate with a new name (and this one could be touched in any moment). The initial configuration is used also as fall back in case of container crash.
+* Through an administrative service which is launched on value `service.admin_port` (*8074* by default). These are the supported methods of this control API:
+  * **POST** `/app/v1/provision/<file basename>` with source code sent over the request body in plain text. This operation always receives status code `201 Created`, but possible crash of container's application may be provoked by a bad design of the content sent.
+  * **GET** `/app/v1/provision/<file basename>`, to "*touch*" and so reactivate an existing provision. This also receives `200 OK`, even when the touched provision was missing: in that case, an empty provision is created and this shall provoke the crash, being a rude way to reboot the container and then, restore the initial configuration. As mentioned in the `kubectl` method section above, the `initial` provision base name cannot be reactivated (in this case, status code `500 Internal Server Error` will be received).
+  * There is also a keep-alive probe for administration interface, via **GET** `/healthz`, which is used internally as liveness probe, but could also be used externally to check that the deployment is stable and healthy.
 
 ## Deploy and test
 
@@ -76,15 +110,20 @@ To deploy the `helm` chart, execute this script, and follow instructions:
 ./deploy.sh
 ```
 
-You could provide additional `helm install` arguments like setters. In this way you could set an initial provision different than default, or configure a different service port (something that only can be done at deployment time):
+You could provide additional `helm install` arguments like setters. Thus, you could set a different traffic port and/or administration port:
 
 ```bash
-./deploy.sh --set b64provision="$(cat examples/rules-and-functions | base64 -w 0)" --set service.port=9000
+./deploy.sh --set service.traffic_port=9000 --set service.admin_port=9001
 ```
 
-There is a small bash script to do a minimal test of examples available, but it is better to look for notes deployed to play with provisions and traffic requests:
+Testing is developed with `pytest` framework, just execute the following:
 
 ```bash
 ./test.sh
 ```
 
+External provision by mean `kubectl` commands is tested too, but using `bash` instead of `pytest`. Execute this:
+
+```bash
+./test.sh --kubectl
+```

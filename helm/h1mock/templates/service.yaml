@@ -7,10 +7,12 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: cmd-port
+    - port: {{ .Values.service.traffic_port }}
       protocol: TCP
-      name: http-port
+      name: http-traffic
+    - port: {{ .Values.service.admin_port }}
+      protocol: TCP
+      name: http-admin
   selector:
     app.kubernetes.io/name: {{ include "h1mock-chart.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}

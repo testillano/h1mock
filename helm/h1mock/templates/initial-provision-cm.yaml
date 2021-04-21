@@ -1,0 +1,20 @@
+{{- $hasconf := .Files.Glob .Values.provisionPath }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "h1mock-chart.name" . }}-default-provision-config
+  labels:
+{{ include "h1mock-chart.labels" . | indent 4 }}
+data:
+  initial: |-
+{{- if .Files.Glob .Values.provisionPath }}
+{{ .Files.Get .Values.provisionPath | indent 4}}
+{{- else }}
+    def registerRules():
+      app.register_error_handler(404, answer)
+
+    def answer(e):
+      help='<a href="https://github.com/testillano/h1mock#how-it-works">help here</a>'
+      return help, 404, {"Content-Type":"text/html"}
+{{- end }}
+

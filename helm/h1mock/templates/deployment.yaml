@@ -16,15 +16,42 @@ spec:
         app.kubernetes.io/name: {{ include "h1mock-chart.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      volumes:
+        - name: {{ template "h1mock-chart.name" . }}-dflt-prov-conf-vol
+          configMap:
+            name: {{ template "h1mock-chart.name" . }}-default-provision-config
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: http-port
-              containerPort: {{ .Values.service.port }}
+            - name: http-traffic
+              containerPort: {{ .Values.service.traffic_port }}
+              protocol: TCP
+            - name: http-admin
+              containerPort: {{ .Values.service.admin_port }}
               protocol: TCP
           args:
-          - {{ .Values.service.port | quote }}
-          - {{ .Values.b64provision | quote }}
+          - {{ .Values.service.traffic_port | quote }}
+          - {{ .Values.service.admin_port | quote }}
+          {{- if .Values.verbosity.enabled }}
+          - "verbose"
+          {{- end }}
+          volumeMounts:
+          - name: {{ template "h1mock-chart.name" . }}-dflt-prov-conf-vol
+            mountPath: "/app/provision/config"
+          # livenessProbe & readinessProbe look for admin port, as main app is
+          #  blocking on startup and will restart the container in case of crash.
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.service.admin_port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
 
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.service.admin_port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10

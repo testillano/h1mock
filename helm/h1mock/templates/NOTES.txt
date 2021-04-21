@@ -15,40 +15,51 @@
 {{- if .Values.ingress.enabled }}
 {{- range $host := .Values.ingress.hosts }}
   {{- range .paths }}
-     http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ . }}
+    http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ . }}
   {{- end }}
 {{- end }}
 {{- else if contains "NodePort" .Values.service.type }}
 
-     NODE_PORT=$(kubectl get -n {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "h1mock-chart.fullname" . }})
-     NODE_IP=$(kubectl get nodes -n {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
-     echo http://$NODE_IP:$NODE_PORT
+    NODE_PORT=$(kubectl get -n {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "h1mock-chart.fullname" . }})
+    NODE_IP=$(kubectl get nodes -n {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+    echo http://$NODE_IP:$NODE_PORT
 {{- else if contains "LoadBalancer" .Values.service.type }}
 
-     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-           You can watch the status of by running 'kubectl get -n {{ .Release.Namespace }} svc -w {{ include "h1mock-chart.fullname" . }}'
-     SERVICE_IP=$(kubectl get svc -n {{ .Release.Namespace }} {{ include "h1mock-chart.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+    NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+          You can watch the status of by running 'kubectl get -n {{ .Release.Namespace }} svc -w {{ include "h1mock-chart.fullname" . }}'
+    SERVICE_IP=$(kubectl get svc -n {{ .Release.Namespace }} {{ include "h1mock-chart.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
 {{- else if contains "ClusterIP" .Values.service.type }}
 
-     POD=$(kubectl get pods -n {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "h1mock-chart.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" --no-headers | awk '{ if ($3 == "Running") print $1 }')
+    POD=$(kubectl get pods -n {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "h1mock-chart.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" --no-headers | awk '{ if ($3 == "Running") print $1 }')
 {{- end }}
+    kill $(jobs -rp) # finish previous kubectl port-forwards
 
- 2. Provision HTTP/2 Mock Server URL Rules & Functions, for example:
+ 2. Provision (for example, 'examples/rules-and-functions'):
 
+    Note: initial provision answers 404 (Not Found) with a help URL, regardless the URL path provided:
+          kubectl exec -it -n {{ .Release.Namespace }} ${POD} -- sh -c "curl -XGET http://0.0.0.0:{{ .Values.service.traffic_port }}/any/path/"
+
+    Via kubectl:
      kubectl cp -n {{ .Release.Namespace }} examples/rules-and-functions ${POD}:/app/provision
+
+    Via administrative interface:
+     kubectl port-forward -n {{ .Release.Namespace }} ${POD} {{ .Values.service.admin_port }}:{{ .Values.service.admin_port }} &
+     curl -XPOST -H "Content-Type: text/plain" --data-binary @examples/rules-and-functions http://localhost:{{ .Values.service.admin_port }}/app/v1/provision/myprovision
 
  3. Send request for that provision:
 
-    Via port-forward:
-     LOCAL_PORT={{ .Values.service.port }} # change if needed
-     kubectl port-forward -n {{ .Release.Namespace }} ${POD} ${LOCAL_PORT}:{{ .Values.service.port }} &
-     curl -XGET http://localhost:${LOCAL_PORT}/app/v1/foo/bar
+    Via kubectl:
+     kubectl exec -it -n {{ .Release.Namespace }} ${POD} -- sh -c "curl -XGET http://0.0.0.0:{{ .Values.service.traffic_port }}/app/v1/foo/bar"
 
-    Remotely:
-     kubectl exec -it -n {{ .Release.Namespace }} ${POD} -- sh -c "curl -XGET http://0.0.0.0:{{ .Values.service.port }}/app/v1/foo/bar"
+    Via traffic interface:
+     kubectl port-forward -n {{ .Release.Namespace }} ${POD} {{ .Values.service.traffic_port }}:{{ .Values.service.traffic_port }} &
+     curl -XGET http://localhost:{{ .Values.service.traffic_port }}/app/v1/foo/bar
 
- You can also reactivate an already existing provision file:
-   kubectl exec -it -n {{ .Release.Namespace }} ${POD} -- sh -c "touch provision/default"
+ 4. How to reactivate already existing provision files (for example, '/app/provision/other_provision'):
 
- This default provision answers 404 (Not Found) with a help URL, regardless the URL path provided:
-   kubectl exec -it -n {{ .Release.Namespace }} ${POD} -- sh -c "curl -XGET http://0.0.0.0:{{ .Values.service.port }}/any/path/"
+    Via kubectl:
+     kubectl exec -it -n {{ .Release.Namespace }} ${POD} -- sh -c "touch provision/other_provision"
+
+    Via administrative interface:
+     curl -XGET http://localhost:{{ .Values.service.admin_port }}/app/v1/provision/other_provision
+

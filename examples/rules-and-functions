@@ -1,6 +1,6 @@
 ##############################################################
 # Flask basics:                                              #
-# http://0.0.0.0:8000/app/v1/configuration?x=y               #
+# http://0.0.0.0:8000/app/v1/foo/bar?x=y                     #
 #                                                            #
 #    path             /foo/bar                               #
 #    full_path        /foo/bar?x=y                           #
@@ -21,9 +21,8 @@ def registerRules():
 # FUNCTIONS SECTION                                          #
 ##############################################################
 import copy
-import json
-import subprocess
 import random
+#import json
 
 responseBodyOK = {"resultCode":0}
 responseBodyNOK = {"resultCode":1}

@@ -31,11 +31,16 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-b64provision: ""
+# flask logging verbosity:
+verbosity:
+  enabled: false
+
+provisionPath: ""
 
 service:
   type: ClusterIP
-  port: 8000
+  traffic_port: 8000
+  admin_port: 8074
 
 ingress:
   enabled: false
