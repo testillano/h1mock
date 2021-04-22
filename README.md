@@ -102,30 +102,28 @@ This can be done in two main ways:
   * **GET** `/app/v1/provision/<file basename>`, to "*touch*" and so reactivate an existing provision. This also receives `200 OK`, even when the touched provision was missing: in that case, an empty provision is created and this shall provoke the crash, being a rude way to reboot the container and then, restore the initial configuration. As mentioned in the `kubectl` method section above, the `initial` provision base name cannot be reactivated (in this case, status code `500 Internal Server Error` will be received).
   * There is also a keep-alive probe for administration interface, via **GET** `/healthz`, which is used internally as liveness probe, but could also be used externally to check that the deployment is stable and healthy.
 
-## Deploy and test
+## Deploy
 
-To deploy the `helm` chart, execute this script, and follow instructions:
+To deploy the main micro service chart, execute the following:
 
 ```bash
 ./deploy.sh
 ```
 
-You could provide additional `helm install` arguments like setters. Thus, you could set a different traffic port and/or administration port:
+Once installed, a template notes will be shown. Follow the instructions to execute manually a basic check.
+
+## Test (administrative interface)
+
+The following script will deploy the component test chart and then start the pytest framework:
 
 ```bash
-./deploy.sh --set service.traffic_port=9000 --set service.admin_port=9001
+./ct/test.sh
 ```
 
-**WORK-IN-PROGRESS below**
+## Test (kubectl provision)
 
-Testing is developed with `pytest` framework, just execute the following:
-
-```bash
-./test.sh
-```
-
-External provision by mean `kubectl` commands is tested too, but using `bash` instead of `pytest`. Execute this:
+External provision by mean `kubectl` commands is tested too, but using `bash` instead of `pytest`:
 
 ```bash
-./test.sh --kubectl
+./ct/ktest.sh
 ```

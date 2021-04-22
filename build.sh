@@ -42,13 +42,28 @@ build_project_image() {
   set +x
 }
 
+build_ct_image() {
+  echo
+  echo "=== Build component test image ==="
+  echo
+  _read image_tag "${image_tag__dflt}"
+  _read base_tag "${base_tag__dflt}"
+
+  bargs="--build-arg base_tag=${base_tag}"
+
+  set -x
+  # shellcheck disable=SC2086
+  docker build --rm ${bargs} -f ct/Dockerfile -t testillano/ct-h1mock:"${image_tag}" . || return 1 # context is '.' to access examples
+  set +x
+}
+
 #############
 # EXECUTION #
 #############
 # shellcheck disable=SC2164
 cd "$(dirname "$0")"
 
-build_project_image
+build_project_image && build_ct_image
 
 exit $?
 

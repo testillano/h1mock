@@ -63,3 +63,9 @@
     Via administrative interface:
      curl -XGET http://localhost:{{ .Values.service.admin_port }}/app/v1/provision/other_provision
 
+    Be careful: an empty or invalid provision, will crash the service. Take a look to the RS count in this way:
+     kubectl get pod -n {{ .Release.Namespace }} -o=custom-columns=:.status.containerStatuses[0].restartCount -l app.kubernetes.io/name={{ include "h1mock-chart.name" . }}
+     - or specifically -
+     kubectl get pod -n {{ .Release.Namespace }} ${POD}
+
+

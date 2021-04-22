@@ -54,14 +54,18 @@ def provision(filebn):
 
   elif request.method == "POST":
     statusCode = HTTP_STATUS_CODE__SUCCESS__CREATED
-    contentType = request.headers['content-type']
-    if (contentType != "text/plain"):
-      statusCode = HTTP_STATUS_CODE__CLIENT_ERROR__UNSUPPORTED_MEDIA_TYPE
-      response = {"result":"failed: content-type must be 'text/plain'"}
-    else:
-      with open(provisionDirectory + filebn, "w") as f:
-        f.write(request.data.decode())
-    #    statusCode = HTTP_STATUS_CODE__SERVER_ERROR__NOT_IMPLEMENTED = 501
+    contentType = None
+    try:
+      contentType = request.headers['content-type']
+      if (contentType != "text/plain"):
+        statusCode = HTTP_STATUS_CODE__CLIENT_ERROR__UNSUPPORTED_MEDIA_TYPE
+        response = {"result":"failed: content-type must be 'text/plain'"}
+        return response, statusCode
+    except:
+      pass
+
+    with open(provisionDirectory + filebn, "w") as f:
+      f.write(request.data.decode())
 
     # Form upload method (for example: curl -v -X POST -F file=@path-to-file http://<admin server>:8074/app/v1/provision)
     # if 'file' in request.files:

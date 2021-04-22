@@ -58,9 +58,22 @@ jobs:
         name: Image digest
         run: echo ${{ steps.docker_build1.outputs.digest }}
       -
+        name: Build (but not push) ct image (ct-h1mock)
+        id: docker_build2
+        uses: docker/build-push-action@v2
+        with:
+          tags: testillano/ct-h1mock:local
+          file: ct/Dockerfile
+          context: .
+          #push: true
+      -
+        name: Image digest
+        run: echo ${{ steps.docker_build2.outputs.digest }}
+      -
         name: Push images manually
         run: |
-          IMAGE_ID=docker.io/testillano/h1mock
+          IMAGE_ID1=docker.io/testillano/h1mock
+          IMAGE_ID2=docker.io/testillano/ct-h1mock
 
           # workflow dispatch event:
           image_tag=${{ github.event.inputs.dtag }}
@@ -77,9 +90,11 @@ jobs:
 
           echo Processed image_tag=$image_tag
 
-          docker tag testillano/h1mock:local $IMAGE_ID:$image_tag
+          docker tag testillano/h1mock:local $IMAGE_ID1:$image_tag
+          docker tag testillano/ct-h1mock:local $IMAGE_ID2:$image_tag
 
-          docker push $IMAGE_ID:$image_tag
+          docker push $IMAGE_ID1:$image_tag
+          docker push $IMAGE_ID2:$image_tag
 
   helm_publish:
     runs-on: ubuntu-latest

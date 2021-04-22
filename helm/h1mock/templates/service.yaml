@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "h1mock-chart.fullname" . }}
+  name: {{ include "h1mock-chart.name" . }}
   labels:
 {{ include "h1mock-chart.labels" . | indent 4 }}
 spec:

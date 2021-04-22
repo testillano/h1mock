@@ -31,6 +31,8 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
+name: h1mock
+
 # flask logging verbosity:
 verbosity:
   enabled: false
