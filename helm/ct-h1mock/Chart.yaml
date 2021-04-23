@@ -8,10 +8,4 @@ dependencies:
   - name: h1mock
     version: 1.0.0
     repository: file://../h1mock
-    import-values:
-    - child: verbosity
-      parent: h1mock_verbosity
-    - child: image
-      parent: h1mock_image
-    - child: service
-      parent: h1mock_service
+    alias: h1mock

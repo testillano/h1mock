@@ -100,7 +100,7 @@ This can be done in two main ways:
 * Through an administrative service which is launched on value `service.admin_port` (*8074* by default). These are the supported methods of this control API:
   * **POST** `/app/v1/provision/<file basename>` with source code sent over the request body in plain text. This operation always receives status code `201 Created`, but possible crash of container's application may be provoked by a bad design of the content sent.
   * **GET** `/app/v1/provision/<file basename>`, to "*touch*" and so reactivate an existing provision. This also receives `200 OK`, even when the touched provision was missing: in that case, an empty provision is created and this shall provoke the crash, being a rude way to reboot the container and then, restore the initial configuration. As mentioned in the `kubectl` method section above, the `initial` provision base name cannot be reactivated (in this case, status code `500 Internal Server Error` will be received).
-  * There is also a keep-alive probe for administration interface, via **GET** `/healthz`, which is used internally as liveness probe, but could also be used externally to check that the deployment is stable and healthy.
+  * There is also a keep-alive for administration interface, via **GET** `/healthz`. This could be used to check that the provision system through `HTTP/1` interface is available.
 
 ## Deploy
 

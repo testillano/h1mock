@@ -20,17 +20,17 @@
 {{- end }}
 {{- else if contains "NodePort" .Values.service.type }}
 
-    NODE_PORT=$(kubectl get -n {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "h1mock-chart.fullname" . }})
+    NODE_PORT=$(kubectl get -n {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ .Values.service.name }})
     NODE_IP=$(kubectl get nodes -n {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
     echo http://$NODE_IP:$NODE_PORT
 {{- else if contains "LoadBalancer" .Values.service.type }}
 
     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-          You can watch the status of by running 'kubectl get -n {{ .Release.Namespace }} svc -w {{ include "h1mock-chart.fullname" . }}'
-    SERVICE_IP=$(kubectl get svc -n {{ .Release.Namespace }} {{ include "h1mock-chart.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+          You can watch the status of by running 'kubectl get -n {{ .Release.Namespace }} svc -w {{ .Values.service.name }}'
+    SERVICE_IP=$(kubectl get svc -n {{ .Release.Namespace }} {{ .Values.service.name }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
 {{- else if contains "ClusterIP" .Values.service.type }}
 
-    POD=$(kubectl get pods -n {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "h1mock-chart.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" --no-headers | awk '{ if ($3 == "Running") print $1 }')
+    POD=$(kubectl get pods -n {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "h1mock.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" --no-headers | awk '{ if ($3 == "Running") print $1 }')
 {{- end }}
     kill $(jobs -rp) # finish previous kubectl port-forwards
 
@@ -64,7 +64,7 @@
      curl -XGET http://localhost:{{ .Values.service.admin_port }}/app/v1/provision/other_provision
 
     Be careful: an empty or invalid provision, will crash the service. Take a look to the RS count in this way:
-     kubectl get pod -n {{ .Release.Namespace }} -o=custom-columns=:.status.containerStatuses[0].restartCount -l app.kubernetes.io/name={{ include "h1mock-chart.name" . }}
+     kubectl get pod -n {{ .Release.Namespace }} -o=custom-columns=:.status.containerStatuses[0].restartCount -l app.kubernetes.io/name={{ include "h1mock.name" . }}
      - or specifically -
      kubectl get pod -n {{ .Release.Namespace }} ${POD}
 

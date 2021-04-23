@@ -17,8 +17,16 @@ initContainer:
 
 h1mock:
   image:
-    repository: testillano/h1mock
     tag: latest
 
-  verbosity:
-    enabled: true
+  service:
+    #name: h1mock
+
+    traffic_port: 8000
+    admin_port: 8074
+
+    verbosity:
+      enabled: true
+
+    provisionPath: ""
+

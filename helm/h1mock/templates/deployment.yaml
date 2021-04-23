@@ -1,28 +1,36 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "h1mock-chart.name" . }}
+  name: {{ .Values.service.name }}
   labels:
-{{ include "h1mock-chart.labels" . | indent 4 }}
+{{ include "h1mock.labels" . | indent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "h1mock-chart.name" . }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- include "h1mock.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+    {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
       labels:
-        app.kubernetes.io/name: {{ include "h1mock-chart.name" . }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- include "h1mock.selectorLabels" . | nindent 8 }}
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       volumes:
-        - name: {{ template "h1mock-chart.name" . }}-dflt-prov-conf-vol
+        - name: {{ template "h1mock.fullname" . }}-dflt-prov-conf-vol
           configMap:
-            name: {{ template "h1mock-chart.name" . }}-default-provision-config
+            name: {{ template "h1mock.fullname" . }}-default-provision-config
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http-traffic
@@ -34,24 +42,26 @@ spec:
           args:
           - {{ .Values.service.traffic_port | quote }}
           - {{ .Values.service.admin_port | quote }}
-          {{- if .Values.verbosity.enabled }}
+          {{- if .Values.service.verbosity.enabled }}
           - "verbose"
           {{- end }}
           volumeMounts:
-          - name: {{ template "h1mock-chart.name" . }}-dflt-prov-conf-vol
+          - name: {{ template "h1mock.fullname" . }}-dflt-prov-conf-vol
             mountPath: "/app/provision/config"
           # livenessProbe & readinessProbe look for admin port, as main app is
           #  blocking on startup and will restart the container in case of crash.
           livenessProbe:
-            httpGet:
-              path: /healthz
-              port: {{ .Values.service.admin_port }}
-            initialDelaySeconds: 5
+            tcpSocket:
+              port: {{ .Values.service.traffic_port }}
+            initialDelaySeconds: 10
             periodSeconds: 5
 
-          readinessProbe:
-            httpGet:
-              path: /healthz
+          livenessProbe:
+            #httpGet:
+            #  path: /healthz
+            #  port: {{ .Values.service.admin_port }}
+            tcpSocket:
               port: {{ .Values.service.admin_port }}
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 10
+            periodSeconds: 5
+

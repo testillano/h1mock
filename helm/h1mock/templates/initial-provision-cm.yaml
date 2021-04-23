@@ -1,14 +1,14 @@
-{{- $hasconf := .Files.Glob .Values.provisionPath }}
+{{- $hasconf := .Files.Glob .Values.service.provisionPath }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ template "h1mock-chart.name" . }}-default-provision-config
+  name: {{ template "h1mock.fullname" . }}-default-provision-config
   labels:
-{{ include "h1mock-chart.labels" . | indent 4 }}
+{{ include "h1mock.labels" . | indent 4 }}
 data:
   initial: |-
-{{- if .Files.Glob .Values.provisionPath }}
-{{ .Files.Get .Values.provisionPath | indent 4}}
+{{- if .Files.Glob .Values.service.provisionPath }}
+{{ .Files.Get .Values.service.provisionPath | indent 4}}
 {{- else }}
     def registerRules():
       app.register_error_handler(404, answer)

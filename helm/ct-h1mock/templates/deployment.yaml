@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.test.name }}
+  name: {{ include "ct-h1mock.fullname" . }}
   labels:
     {{- include "ct-h1mock.labels" . | nindent 4 }}
 spec:
@@ -23,7 +23,7 @@ spec:
           image: "{{ .Values.initContainer.image.repository }}:{{ .Values.initContainer.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.initContainer.image.pullPolicy }}
           command: ["sh", "-c"]
-          args: [ "until nslookup {{ .Values.h1mock.name }} ; do sleep 2; done && until nc -w 1 -z {{ .Values.h1mock.name }} {{ .Values.h1mock_service.traffic_port }} ; do sleep 2; done && until nc -w 1 -z {{ .Values.h1mock.name }} {{ .Values.h1mock_service.admin_port }} ; do sleep 2; done"]
+          args: [ "until nslookup {{ .Values.h1mock.service.name }} ; do sleep 2; done && until nc -w 1 -z {{ .Values.h1mock.service.name }} {{ .Values.h1mock.service.traffic_port }} ; do sleep 2; done && until nc -w 1 -z {{ .Values.h1mock.service.name }} {{ .Values.h1mock.service.admin_port }} ; do sleep 2; done"]
 
       containers:
         - name: test
