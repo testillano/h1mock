@@ -21,6 +21,7 @@ def registerRules():
 # FUNCTIONS SECTION                                          #
 ##############################################################
 import subprocess
+import time
 
 def launchShellScript(cmd):
   p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -73,5 +74,7 @@ def provision(filebn):
     #   filename = secure_filename(file.filename)
     #   file.save(os.path.join(provisionDirectory, filename))
 
+  # Security margin to ensure flask app reload:
+  time.sleep(1)
 
   return response, statusCode

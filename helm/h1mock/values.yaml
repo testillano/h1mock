@@ -46,8 +46,7 @@ service:
   verbosity:
     enabled: false
 
-  provisionPath: ""
-
+  #provisionsDir: myProvisions
 
 ingress:
   enabled: false

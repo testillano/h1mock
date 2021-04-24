@@ -14,13 +14,12 @@
 # RULES SECTION                                              #
 ##############################################################
 def registerRules():
-  app.register_error_handler(404, answer)
+  app.add_url_rule("/healthz", "healthz", view_func=healthz, methods=['GET'])
 
 ##############################################################
 # FUNCTIONS SECTION                                          #
 ##############################################################
-def answer(e):
 
-  help='<a href="https://github.com/testillano/h1mock#how-it-works">help here for ct-h1mock provisions</a>'
-  return help, 404, {"Content-Type":"text/html"}
+def healthz():
+  return "I'm here!", HTTP_STATUS_CODE__SUCCESS__OK
 

@@ -25,11 +25,12 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       volumes:
-        - name: {{ template "h1mock.fullname" . }}-dflt-prov-conf-vol
+        - name: {{ .Values.service.name }}-provision-config-vol
           configMap:
-            name: {{ template "h1mock.fullname" . }}-default-provision-config
+            name: {{ .Values.service.name }}-provision-config
+            optional: true
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ .Values.service.name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
@@ -46,8 +47,8 @@ spec:
           - "verbose"
           {{- end }}
           volumeMounts:
-          - name: {{ template "h1mock.fullname" . }}-dflt-prov-conf-vol
-            mountPath: "/app/provision/config"
+          - name: {{ .Values.service.name }}-provision-config-vol
+            mountPath: "/config"
           # livenessProbe & readinessProbe look for admin port, as main app is
           #  blocking on startup and will restart the container in case of crash.
           livenessProbe:

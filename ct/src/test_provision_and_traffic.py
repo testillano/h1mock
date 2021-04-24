@@ -1,19 +1,16 @@
 import pytest
 import json
-import time
 
 
 def test_001_provision_rules_and_functions(resources, h1mc_admin):
 
   # Send POST
-  rulesAndFunctionsProvision = resources("rules-and-functions")
+  rulesAndFunctionsProvision = resources("foo-bar")
   response = h1mc_admin.postData("app/v1/provision/myprovision", rulesAndFunctionsProvision)
 
   # Verify response
   assert response.status_code == 201
   assert response.json()["result"] == "success: basename file 'myprovision' has been loaded"
-
-  time.sleep(1)
 
 
 def test_002_request_to_rules_and_functions(h1mc_traffic):
@@ -35,8 +32,6 @@ def test_003_provision_default(resources, h1mc_admin):
   # Verify response
   assert response.status_code == 201
   assert response.json()["result"] == "success: basename file 'other_provision' has been loaded"
-
-  time.sleep(1)
 
 
 def test_004_request_to_default(h1mc_traffic):

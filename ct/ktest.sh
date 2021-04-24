@@ -58,9 +58,9 @@ assert "HTML Response" "${response}" '<a href="https://github.com/testillano/h1m
 
 
 echo
-echo "Test 2) Provision 'foo bar' rules-and-functions file and test foo bar URI ..."
+echo "Test 2) Provision 'foo-bar' example ..."
 echo
-kubectl cp -n ${NAMESPACE} ${REPO_DIR}/examples/rules-and-functions ${POD}:/app/provision
+kubectl cp -n ${NAMESPACE} ${REPO_DIR}/examples/foo-bar ${POD}:/app/provision
 sleep 1
 kubectl exec -it -n ${NAMESPACE} ${POD} -- sh -c "curl -XGET -v http://0.0.0.0:8000/app/v1/foo/bar" > ${REPO_DIR}/.response
 

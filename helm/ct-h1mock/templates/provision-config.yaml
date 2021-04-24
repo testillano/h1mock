@@ -1,0 +1,2 @@
+{{- include "h1mock.configmap" ( list $ $.Values.h1mock ) }}
+

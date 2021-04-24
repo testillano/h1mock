@@ -62,3 +62,23 @@ Create the name of the service account to use
     {{ default "default" .Values.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Create the provision config map
+*/}}
+{{- define "h1mock.configmap" }}
+{{- $currentScope := ( first . ) -}}
+{{- $scope := ( last . ) -}}
+{{- $provisionsDir := $scope.service.provisionsDir -}}
+{{- if ne "$provisionsDir" "" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $scope.service.name | lower | replace "_" "-" }}-provision-config
+  labels:
+{{ include "h1mock.labels" $currentScope | indent 4 }}
+data:
+{{ ( $currentScope.Files.Glob (print $provisionsDir "/*") ).AsConfig | indent 2 }}
+{{- end -}}
+{{- end -}}
+

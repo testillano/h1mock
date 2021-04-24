@@ -20,7 +20,7 @@ h1mock:
     tag: latest
 
   service:
-    #name: h1mock
+    name: h1mock
 
     traffic_port: 8000
     admin_port: 8074
@@ -28,5 +28,4 @@ h1mock:
     verbosity:
       enabled: true
 
-    provisionPath: ""
-
+    provisionsDir: provisions

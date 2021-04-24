@@ -6,7 +6,7 @@
 #############
 APP_DIR="/app"
 PROV_DIR="${APP_DIR}/provision"
-PROV_INITIAL_CONFIG_DIR="${APP_DIR}/provision/config"
+PROV_CONFIG_DIR="/config"
 SERVER_PORT=${1:-8000}
 ADMIN_PORT=${2:-8074}
 VERBOSE=$3
@@ -68,11 +68,27 @@ monitor_provision() {
 #############
 
 cd "${APP_DIR}"
-
-# Symlink initial provision configuration
 mkdir -p "${PROV_DIR}"
-ln -s "${PROV_INITIAL_CONFIG_DIR}/initial" "${PROV_DIR}"
-build_py "mock.py" "${PROV_DIR}/initial" "${SERVER_PORT}"
+
+# Copy configmap provisions to writable provision directory:
+for provision in $(find "${PROV_CONFIG_DIR}" -type f 2>/dev/null); do cp "${provision}" "${PROV_DIR}"; done
+
+# fall back to create default initial provision:
+default="${PROV_DIR}"/initial
+
+if [ ! -f "${default}" ]
+then
+  cat << EOF > "${default}"
+def registerRules():
+  app.register_error_handler(404, answer)
+
+def answer(e):
+  help='<a href="https://github.com/testillano/h1mock#how-it-works">help here</a>'
+  return help, 404, {"Content-Type":"text/html"}
+EOF
+fi
+
+build_py "mock.py" "${default}" "${SERVER_PORT}"
 
 # Monitor future provisions
 monitor_provision &

@@ -28,10 +28,11 @@ Usage: $0 [-h|--help] [ pytest extra options ]
 
        XTRA_HELM_SETS: additional setters for helm install execution.
        SKIP_HELM_DEPS: non-empty value skip helm dependencies update.
-       REUSE:          non-empty value avoids re-deployment. By default,
-                       a cleanup is done.
-       TAG:            h1mock and ct-h1mock images tag for deployment (latest by default).
-                       'REUSE' must be enabled to update pod images for existing deployment.
+       TAG:            h1mock and ct-h1mock images tag for deployment
+                       (latest by default).
+       REUSE:          non-empty value reuses or updates (if new TAG
+                       is provided) the possible existing deployment
+                       (by default, a cleanup is done).
        NO_TEST:        non-empty value skips test stage (only deploys).
 
        Examples:
@@ -101,15 +102,16 @@ if [ -n "${list}" ] # reuse
 then
   echo -e "\nWaiting for upgrade to tag '${TAG}' ..."
   kubectl set image "deployment/h1mock" -n "${NAMESPACE}" h1mock=testillano/h1mock:"${TAG}" &>/dev/null
-  kubectl set image "deployment/test" -n "${NAMESPACE}" test=testillano/ct-h1mock:"${TAG}" &>/dev/null
+  kubectl set image "deployment/ct-h1mock" -n "${NAMESPACE}" test=testillano/ct-h1mock:"${TAG}" &>/dev/null
   test_pod="$(get_pod "${NAMESPACE}" ct-h1mock)"
   h1mock_pod="$(get_pod "${NAMESPACE}" h1mock)"
+
   # shellcheck disable=SC2166
   [ -z "${test_pod}" -o -z "${h1mock_pod}" ] && echo "Missing target pods to upgrade" && exit 1
 
   # Check 10 times, during 1 minute (every 6 seconds):
   attempts=0
-  until kubectl rollout status deployment/test -n "${NAMESPACE}" &>/dev/null || [ ${attempts} -eq 10 ]; do
+  until kubectl rollout status deployment/ct-h1mock -n "${NAMESPACE}" &>/dev/null || [ ${attempts} -eq 10 ]; do
     echo -n .
     sleep 6
     attempts=$((attempts + 1))

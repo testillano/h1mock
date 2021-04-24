@@ -55,9 +55,9 @@ This image is built with `./Dockerfile`.
 
 ## How it works
 
-The application is built on demand from pieces of source code which manage the server behavior.
+The application is built on demand from pieces of source code which define the server behavior. The implementation must follow the [flask API](https://flask.palletsprojects.com/en/1.1.x/) referring to an `app` application (this instance name is mandatory, no other can be used).
 
-You must use [flask API](https://flask.palletsprojects.com/en/1.1.x/) over `app` application (this instance name is mandatory, no other can be used) and define the *URL rules* inside a function which must be called `registerRules()`. For example:
+The needed code only requires the definition of the *URL rules* inside a function which must be called `registerRules()` and also the functions required by those rules. For example:
 
 ```python
 def registerRules():
@@ -65,18 +65,22 @@ def registerRules():
   app.add_url_rule("/bar", "bar_post", view_func=bar_post, methods=['POST'])
 
 def foo_get:
-    # <here your code>
+  # <here your code>
 
 def bar_post:
-    # <here your code>
+  # <here your code>
 ```
 
-So **these are the requirements**:
+Summing up,  **these are the requirements**:
 - Flask application instance: `app`.
 
 - Mandatory rules registration definition: `registerRules()`.
 
 - No need to re-import those already available: `os`, `logging` and of course, `flask` (*Flask*, *Blueprint*, *jsonify*, *request*).
+
+- The piece of source code must not be indented on first level (definitions).
+
+  
 
 More examples could be found at `./examples` directory.
 
@@ -84,22 +88,42 @@ To configure the service, that source code could be provisioned in two ways:
 
 ### On deployment time
 
-The chart value `provisionPath` shall be used to set a relative path to the `helm chart`. The value must be in place (even being a symlink). If this value is missing or empty, a default provision is established (which always responds status code `404 Not Found` with an `html` response containing a help hyper link). Example:
+The chart value `service.provisionsDir` could be used to specify a directory path where provision files are installed at deployment time. From these files, the one named '*initial*' will be used as the working provision after deployment (symlink it to any of them or just name it so), and the rest are available for further optional activation operations (touch). A default '*initial*' provision (which always responds status code `404 Not Found` with an `html` response containing a help hyper link) will be created as *fall back* when no initial provision is found during deployment.
+
+Provisions must be accessible from `helm chart` root level and a `ConfigMap` must be created for them using the `h1mock.configmap` function from `h1mock` chart `templates/_helpers.tpl`. For example:
 
 ```bash
-helm install myRelease -n myNamespace chartDir --set provisionPath=myProvision --wait
+$> tree examples
+examples
+├── default
+├── foo-bar
+├── healthz
+└── initial -> default
+
+$> cd helm/h1mock
+$> ln -sf ../../examples
+$> cat << EOF > templates/provision-config.yaml
+{{- include "h1mock.configmap" ( list $ $.Values ) }}
+EOF
+$> kubectl create namespace h1m
+$> helm install h1m -n h1m . --set service.provisionsDir=examples --wait
+$> POD=$(kubectl get pods -n h1m --no-headers | awk '{ if ($3 == "Running") print $1 }')
+$> kubectl exec -it -n h1m ${POD} -- sh -c "ls /app/provision"
+default  foo-bar  healthz  initial
+$> helm delete -n h1m h1m
+$> kubectl delete namespace h1m
 ```
 
-In this example, the file `myProvision` must be accessible from `helm chart` root level.
+All these steps have been done in component test chart (`./helm/ct-h1mock`) which has a `ConfigMap` already created and also a specific provisions directory enabled at `values.yaml` file.
 
 ### On demand
 
 This can be done in two main ways:
 
-* Through `kubectl cp` of the source file into `h1mock` container's path `/app/provision`. The utility `inotify` will detect the creation event to upgrade the server source activating the new behavior. You could send different server definitions and they will be loaded on demand (this is thanks to [flask debug mode option](https://flask.palletsprojects.com/en/1.1.x/quickstart/#debug-mode)). You could even reactivate any of the available provision files within the docker internal directory, by mean touching them by mean `kubectl exec`. Note that the initial provision belongs to a read-only configMap, so the only way to reactivate it is copying a duplicate with a new name (and this one could be touched in any moment). The initial configuration is used also as fall back in case of container crash.
+* Through `kubectl cp` of the source file into `h1mock` container's path `/app/provision`. The utility `inotify` will detect the creation event to upgrade the server source activating the new behavior. You could send different server definitions and they will be loaded on demand (this is thanks to [flask debug mode option](https://flask.palletsprojects.com/en/1.1.x/quickstart/#debug-mode)). You could even reactivate any of the available provision files within the docker internal directory, by mean touching them by mean `kubectl exec`.
 * Through an administrative service which is launched on value `service.admin_port` (*8074* by default). These are the supported methods of this control API:
-  * **POST** `/app/v1/provision/<file basename>` with source code sent over the request body in plain text. This operation always receives status code `201 Created`, but possible crash of container's application may be provoked by a bad design of the content sent.
-  * **GET** `/app/v1/provision/<file basename>`, to "*touch*" and so reactivate an existing provision. This also receives `200 OK`, even when the touched provision was missing: in that case, an empty provision is created and this shall provoke the crash, being a rude way to reboot the container and then, restore the initial configuration. As mentioned in the `kubectl` method section above, the `initial` provision base name cannot be reactivated (in this case, status code `500 Internal Server Error` will be received).
+  * **POST** `/app/v1/provision/<file basename>` with source code sent over the request body in plain text. This operation always receives status code `201 Created`, but possible crash of container's application may be provoked by a bad design of the content sent (in that case, the '*initial*' provision will be restored).
+  * **GET** `/app/v1/provision/<file basename>`, to "*touch*" and so reactivate an existing provision. This also receives `200 OK`, even when the touched provision was missing: in that case, an empty provision is created and this shall provoke the crash, being a rude way to reboot the container and then, restore the initial configuration.
   * There is also a keep-alive for administration interface, via **GET** `/healthz`. This could be used to check that the provision system through `HTTP/1` interface is available.
 
 ## Deploy

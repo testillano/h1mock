@@ -34,17 +34,17 @@
 {{- end }}
     kill $(jobs -rp) # finish previous kubectl port-forwards
 
- 2. Provision (for example, 'examples/rules-and-functions'):
+ 2. Provision (for example, 'examples/foo-bar'):
 
     Note: initial provision answers 404 (Not Found) with a help URL, regardless the URL path provided:
           kubectl exec -it -n {{ .Release.Namespace }} ${POD} -- sh -c "curl -XGET http://0.0.0.0:{{ .Values.service.traffic_port }}/any/path/"
 
     Via kubectl:
-     kubectl cp -n {{ .Release.Namespace }} examples/rules-and-functions ${POD}:/app/provision
+     kubectl cp -n {{ .Release.Namespace }} examples/foo-bar ${POD}:/app/provision
 
     Via administrative interface:
      kubectl port-forward -n {{ .Release.Namespace }} ${POD} {{ .Values.service.admin_port }}:{{ .Values.service.admin_port }} &
-     curl -XPOST -H "Content-Type: text/plain" --data-binary @examples/rules-and-functions http://localhost:{{ .Values.service.admin_port }}/app/v1/provision/myprovision
+     curl -XPOST -H "Content-Type: text/plain" --data-binary @examples/foo-bar http://localhost:{{ .Values.service.admin_port }}/app/v1/provision/myprovision
 
  3. Send request for that provision:
 
@@ -55,15 +55,15 @@
      kubectl port-forward -n {{ .Release.Namespace }} ${POD} {{ .Values.service.traffic_port }}:{{ .Values.service.traffic_port }} &
      curl -XGET http://localhost:{{ .Values.service.traffic_port }}/app/v1/foo/bar
 
- 4. How to reactivate already existing provision files (for example, '/app/provision/other_provision'):
+ 4. How to reactivate already existing provision files (for example the initially deployed '/app/provision/initial'):
 
     Via kubectl:
-     kubectl exec -it -n {{ .Release.Namespace }} ${POD} -- sh -c "touch provision/other_provision"
+     kubectl exec -it -n {{ .Release.Namespace }} ${POD} -- sh -c "touch provision/initial"
 
     Via administrative interface:
-     curl -XGET http://localhost:{{ .Values.service.admin_port }}/app/v1/provision/other_provision
+     curl -XGET http://localhost:{{ .Values.service.admin_port }}/app/v1/provision/initial
 
-    Be careful: an empty or invalid provision, will crash the service. Take a look to the RS count in this way:
+    This method implies "touching" a file, so if already empty or unexisting, the service will crash. So, be careful and track the RS count in this way:
      kubectl get pod -n {{ .Release.Namespace }} -o=custom-columns=:.status.containerStatuses[0].restartCount -l app.kubernetes.io/name={{ include "h1mock.name" . }}
      - or specifically -
      kubectl get pod -n {{ .Release.Namespace }} ${POD}
