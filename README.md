@@ -80,7 +80,7 @@ Summing up,  **these are the requirements**:
 
 - The piece of source code must not be indented on first level (definitions).
 
-  
+- Files within your deployed `configmap` shall be accessible under directory path `/app/provision` (or just `provision` as `/app` is the mock image working directory). This is useful if you consider to load auxiliary files (json or any other format) from your mock source code implementation.
 
 More examples could be found at `./examples` directory.
 
