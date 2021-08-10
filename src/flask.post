@@ -1,13 +1,18 @@
 
 
-##############################################################
-# MAIN                                                       #
-##############################################################
+########
+# MAIN #
+########
 if __name__ == "__main__":
 
   registerRules()
   # https://flask.palletsprojects.com/en/1.1.x/quickstart/#debug-mode
+  #
   # This h1mock is highly supported thanks to debug mode, which makes
-  # possible autoreload source code when it is updated, so Debug must be True:
-  app.run(debug=True, host='0.0.0.0', port = @{SERVER_PORT})
+  # possible autoreload source code when it is updated, so Debug must
+  # be True for main mock application. We will parse @{DEBUG_MODE} to
+  # allow disabling it for admin flask app which MUST NOT BE RELOADED
+  # (dynamic provisions on parent directory would also affect it, and
+  # could respond 'Empty reply from server' when having delays):
+  app.run(debug=@{DEBUG_MODE}, host='0.0.0.0', port = @{SERVER_PORT})
 

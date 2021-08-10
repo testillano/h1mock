@@ -78,7 +78,9 @@ Summing up,  **these are the requirements**:
 
 - No need to re-import those already available: `os`, `logging` and of course, `flask` (*Flask*, *Blueprint*, *jsonify*, *request*).
 
-- The piece of source code must not be indented on first level (definitions).
+- Also, you have available the flask API [status codes](https://github.com/flask-api/flask-api/blob/master/docs/api-guide/status-codes.md).
+
+- The piece of source code must not be indented on first level (definitions), and although it is not mandatory, 2-spaces are recommended for inner tabs.
 
 - Files within your deployed `configmap` shall be accessible under directory path `/app/provision` (or just `provision` as `/app` is the mock image working directory). This is useful if you consider to load auxiliary files (json or any other format) from your mock source code implementation.
 

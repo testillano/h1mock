@@ -1,26 +1,29 @@
-##############################################################
-# Flask basics:                                              #
-# http://0.0.0.0:8000/app/v1/foo/bar?x=y                     #
-#                                                            #
-#    path             /foo/bar                               #
-#    full_path        /foo/bar?x=y                           #
-#    script_root      /app/v1                                #
-#    base_url         http://0.0.0.0:8000/app/v1/foo/bar     #
-#    url              http://0.0.0.0:8000/app/v1/foo/bar?x=y #
-#    url_root         http://0.0.0.0:8000/app/v1/            #
-##############################################################
+################
+# Flask basics #
+################
+# http://0.0.0.0:8000/app/v1/foo/bar?x=y
+#
+#    path             /foo/bar
+#    full_path        /foo/bar?x=y
+#    script_root      /app/v1
+#    base_url         http://0.0.0.0:8000/app/v1/foo/bar
+#    url              http://0.0.0.0:8000/app/v1/foo/bar?x=y
+#    url_root         http://0.0.0.0:8000/app/v1/
+#
+# Flask API status codes:
+# https://github.com/flask-api/flask-api/blob/master/docs/api-guide/status-codes.md
 
-##############################################################
-# RULES SECTION                                              #
-##############################################################
+#################
+# RULES SECTION #
+#################
 def registerRules():
   app.register_error_handler(404, answer)
 
-##############################################################
-# FUNCTIONS SECTION                                          #
-##############################################################
+#####################
+# FUNCTIONS SECTION #
+#####################
 def answer(e):
 
-  help='<a href="https://github.com/testillano/h1mock#how-it-works">help here for ct-h1mock provisions</a>'
+  help='<a href="https://github.com/testillano/h1mock#how-it-works">help here for mock provisions</a>'
   return help, 404, {"Content-Type":"text/html"}
 

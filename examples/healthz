@@ -1,25 +1,27 @@
-##############################################################
-# Flask basics:                                              #
-# http://0.0.0.0:8000/app/v1/foo/bar?x=y                     #
-#                                                            #
-#    path             /foo/bar                               #
-#    full_path        /foo/bar?x=y                           #
-#    script_root      /app/v1                                #
-#    base_url         http://0.0.0.0:8000/app/v1/foo/bar     #
-#    url              http://0.0.0.0:8000/app/v1/foo/bar?x=y #
-#    url_root         http://0.0.0.0:8000/app/v1/            #
-##############################################################
+################
+# Flask basics #
+################
+# http://0.0.0.0:8000/app/v1/foo/bar?x=y
+#
+#    path             /foo/bar
+#    full_path        /foo/bar?x=y
+#    script_root      /app/v1
+#    base_url         http://0.0.0.0:8000/app/v1/foo/bar
+#    url              http://0.0.0.0:8000/app/v1/foo/bar?x=y
+#    url_root         http://0.0.0.0:8000/app/v1/
+#
+# Flask API status codes:
+# https://github.com/flask-api/flask-api/blob/master/docs/api-guide/status-codes.md
 
-##############################################################
-# RULES SECTION                                              #
-##############################################################
+#################
+# RULES SECTION #
+#################
 def registerRules():
   app.add_url_rule("/healthz", "healthz", view_func=healthz, methods=['GET'])
 
-##############################################################
-# FUNCTIONS SECTION                                          #
-##############################################################
-
+#####################
+# FUNCTIONS SECTION #
+#####################
 def healthz():
-  return "I'm here!", HTTP_STATUS_CODE__SUCCESS__OK
+  return "I'm here!", status.HTTP_200_OK
 

@@ -1,40 +1,36 @@
-##############################################################
-# Flask basics:                                              #
-# http://0.0.0.0:8000/app/v1/foo/bar?x=y                     #
-#                                                            #
-#    path             /foo/bar                               #
-#    full_path        /foo/bar?x=y                           #
-#    script_root      /app/v1                                #
-#    base_url         http://0.0.0.0:8000/app/v1/foo/bar     #
-#    url              http://0.0.0.0:8000/app/v1/foo/bar?x=y #
-#    url_root         http://0.0.0.0:8000/app/v1/            #
-##############################################################
+################
+# Flask basics #
+################
+# http://0.0.0.0:8000/app/v1/foo/bar?x=y
+#
+#    path             /foo/bar
+#    full_path        /foo/bar?x=y
+#    script_root      /app/v1
+#    base_url         http://0.0.0.0:8000/app/v1/foo/bar
+#    url              http://0.0.0.0:8000/app/v1/foo/bar?x=y
+#    url_root         http://0.0.0.0:8000/app/v1/
+#
+# Flask API status codes:
+# https://github.com/flask-api/flask-api/blob/master/docs/api-guide/status-codes.md
 
-##############################################################
-# RULES SECTION                                              #
-##############################################################
+#################
+# RULES SECTION #
+#################
 def registerRules():
   app.add_url_rule("/healthz", "healthz", view_func=healthz, methods=['GET'])
   app.add_url_rule("/app/v1/provision/<path:filebn>", "provision", view_func=provision, methods=['GET', 'POST'])
 
-##############################################################
-# FUNCTIONS SECTION                                          #
-##############################################################
+#####################
+# FUNCTIONS SECTION #
+#####################
 import subprocess
 import time
-
-def launchShellScript(cmd):
-  p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-  retcode = p.wait()
-  output = p.stdout.read()
-  stderr = p.stderr.read()
-  return retcode,output,stderr
 
 provisionDirectory = "/app/provision/"
 
 # Keppalive probe
 def healthz():
-  return "", HTTP_STATUS_CODE__SUCCESS__OK
+  return "", status.HTTP_200_OK
 
 # Administrative provision
 def provision(filebn):
@@ -42,7 +38,7 @@ def provision(filebn):
   response = {"result":"success: basename file '{}' has been loaded".format(filebn)}
 
   if request.method == "GET":
-    statusCode = HTTP_STATUS_CODE__SUCCESS__OK
+    statusCode = status.HTTP_200_OK
     cmd = "touch " + provisionDirectory + filebn
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     retcode = p.wait()
@@ -51,15 +47,15 @@ def provision(filebn):
 
     if retcode != 0:
       response = {"result":"failed: {}".format(str(stderr))}
-      statusCode = HTTP_STATUS_CODE__SERVER_ERROR__INTERNAL_SERVER_ERROR
+      statusCode = status.HTTP_500_INTERNAL_SERVER_ERROR
 
   elif request.method == "POST":
-    statusCode = HTTP_STATUS_CODE__SUCCESS__CREATED
+    statusCode = status.HTTP_201_CREATED
     contentType = None
     try:
       contentType = request.headers['content-type']
       if (contentType != "text/plain"):
-        statusCode = HTTP_STATUS_CODE__CLIENT_ERROR__UNSUPPORTED_MEDIA_TYPE
+        statusCode = status.HTTP_415_UNSUPPORTED_MEDIA_TYPE
         response = {"result":"failed: content-type must be 'text/plain'"}
         return response, statusCode
     except:
@@ -74,7 +70,7 @@ def provision(filebn):
     #   filename = secure_filename(file.filename)
     #   file.save(os.path.join(provisionDirectory, filename))
 
-  # Security margin to ensure flask app reload:
+  # Security margin to ensure flask mock app reload the new provision:
   time.sleep(1)
 
   return response, statusCode

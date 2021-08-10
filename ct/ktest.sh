@@ -54,7 +54,7 @@ filterStatusCode=$(grep -o "404 NOT FOUND" ${REPO_DIR}/.response)
 assert StatusCode "${filterStatusCode}" "404 NOT FOUND"
 
 response=$(tail -n -1 ${REPO_DIR}/.response)
-assert "HTML Response" "${response}" '<a href="https://github.com/testillano/h1mock#how-it-works">help here</a>'
+assert "HTML Response" "${response}" '<a href="https://github.com/testillano/h1mock#how-it-works">help here for mock provisions</a>'
 
 
 echo

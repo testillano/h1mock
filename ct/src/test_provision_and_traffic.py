@@ -41,5 +41,5 @@ def test_004_request_to_default(h1mc_traffic):
 
   # Verify response
   assert response.status_code == 404
-  assert response.text == '<a href="https://github.com/testillano/h1mock#how-it-works">help here</a>'
+  assert response.text == '<a href="https://github.com/testillano/h1mock#how-it-works">help here for mock provisions</a>'
 

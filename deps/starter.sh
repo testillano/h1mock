@@ -23,11 +23,12 @@ log() {
   echo "[$(date +'%H:%M:%S')] $@"
 }
 
-# $1: flask file built; $2: behavior file; $3: server port
+# $1: flask file built; $2: behavior file; $3: server port; $4: flask debug mode (True|False)
 build_py() {
   local app=$1
   local file=$2
   local port=$3
+  local debugMode=$4
 
   log "Building '${app}' flask app from file '${file}' serving on port '${port}' ..."
 
@@ -37,7 +38,7 @@ build_py() {
 
   cat flask.pre | sed 's/@{WERKZEUG_LOG_LEVEL}/'${werkzeugLogLevel}'/' > "${app}.tmp"
   cat "${file}" >> "${app}.tmp"
-  cat flask.post | sed 's/@{SERVER_PORT}/'${port}'/' >> "${app}.tmp"
+  cat flask.post | sed 's/@{SERVER_PORT}/'${port}'/' | sed 's/@{DEBUG_MODE}/'${debugMode}'/' >> "${app}.tmp"
   mv "${app}.tmp" "${app}"
 }
 
@@ -57,7 +58,7 @@ monitor_provision() {
       log "Received event '${event}' for provision: ${file}"
       [ ! -f "${file}" ] && COMPLETE=yes log " -> cannot process directory: ignored" && continue
 
-      build_py "mock.py" "${file}" "${SERVER_PORT}"
+      build_py "mock.py" "${file}" "${SERVER_PORT}" True
       touch "${file}.processed"
       event_guard "${file}" &
     done
@@ -83,18 +84,18 @@ def registerRules():
   app.register_error_handler(404, answer)
 
 def answer(e):
-  help='<a href="https://github.com/testillano/h1mock#how-it-works">help here</a>'
+  help='<a href="https://github.com/testillano/h1mock#how-it-works">help here for mock provisions</a>'
   return help, 404, {"Content-Type":"text/html"}
 EOF
 fi
 
-build_py "mock.py" "${default}" "${SERVER_PORT}"
+build_py "mock.py" "${default}" "${SERVER_PORT}" True
 
 # Monitor future provisions
 monitor_provision &
 
 # Start provision server
-build_py "admin.py" "admin.mid" "${ADMIN_PORT}"
+build_py "admin.py" "admin.mid" "${ADMIN_PORT}" False
 python3 admin.py &
 
 # Start mock server

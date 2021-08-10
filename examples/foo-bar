@@ -1,25 +1,28 @@
-##############################################################
-# Flask basics:                                              #
-# http://0.0.0.0:8000/app/v1/foo/bar?x=y                     #
-#                                                            #
-#    path             /foo/bar                               #
-#    full_path        /foo/bar?x=y                           #
-#    script_root      /app/v1                                #
-#    base_url         http://0.0.0.0:8000/app/v1/foo/bar     #
-#    url              http://0.0.0.0:8000/app/v1/foo/bar?x=y #
-#    url_root         http://0.0.0.0:8000/app/v1/            #
-##############################################################
+################
+# Flask basics #
+################
+# http://0.0.0.0:8000/app/v1/foo/bar?x=y
+#
+#    path             /foo/bar
+#    full_path        /foo/bar?x=y
+#    script_root      /app/v1
+#    base_url         http://0.0.0.0:8000/app/v1/foo/bar
+#    url              http://0.0.0.0:8000/app/v1/foo/bar?x=y
+#    url_root         http://0.0.0.0:8000/app/v1/
+#
+# Flask API status codes:
+# https://github.com/flask-api/flask-api/blob/master/docs/api-guide/status-codes.md
 
-##############################################################
-# RULES SECTION                                              #
-##############################################################
+#################
+# RULES SECTION #
+#################
 def registerRules():
   app.add_url_rule("/app/v1/foo/bar", "answer_get", view_func=answer_get, methods=['GET'])
   app.add_url_rule("/app/v1/foo/bar", "answer_post", view_func=answer_post, methods=['POST'])
 
-##############################################################
-# FUNCTIONS SECTION                                          #
-##############################################################
+#####################
+# FUNCTIONS SECTION #
+#####################
 import copy
 import random
 #import json
@@ -31,12 +34,12 @@ def answer_get():
   response = copy.deepcopy(responseBodyOK)
   response["resultData"] = "answering a get"
 
-  return response, HTTP_STATUS_CODE__SUCCESS__OK
+  return response, status.HTTP_200_OK
 
 
 def answer_post():
 
-  responseStatusCode = HTTP_STATUS_CODE__SUCCESS__OK
+  responseStatusCode = status.HTTP_200_OK
   resultData = "answering a post"
 
   response = copy.deepcopy(responseBodyOK)
