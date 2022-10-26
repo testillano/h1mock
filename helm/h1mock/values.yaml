@@ -48,6 +48,9 @@ service:
 
   #provisionsDir: myProvisions
 
+  ipv6:
+    enabled: false
+
 ingress:
   enabled: false
   annotations: {}

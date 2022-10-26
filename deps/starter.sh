@@ -7,10 +7,13 @@
 APP_DIR="/app"
 PROV_DIR="${APP_DIR}/provision"
 PROV_CONFIG_DIR="/config"
+GUARD_SLEEP=2
 SERVER_PORT=${1:-8000}
 ADMIN_PORT=${2:-8074}
 VERBOSE=$3
-GUARD_SLEEP=2
+SERVER_ADDR="0.0.0.0"
+# Ipv6:
+[ -n "$4" ] && SERVER_ADDR="::"
 
 #############
 # FUNCTIONS #
@@ -23,12 +26,13 @@ log() {
   echo "[$(date +'%H:%M:%S')] $@"
 }
 
-# $1: flask file built; $2: behavior file; $3: server port; $4: flask debug mode (True|False)
+# $1: flask file built; $2: behavior file; $3: server address; $4: server port; $5: flask debug mode (True|False)
 build_py() {
   local app=$1
   local file=$2
-  local port=$3
-  local debugMode=$4
+  local addr=$3
+  local port=$4
+  local debugMode=$5
 
   log "Building '${app}' flask app from file '${file}' serving on port '${port}' ..."
 
@@ -38,7 +42,7 @@ build_py() {
 
   cat flask.pre | sed 's/@{WERKZEUG_LOG_LEVEL}/'${werkzeugLogLevel}'/' > "${app}.tmp"
   cat "${file}" >> "${app}.tmp"
-  cat flask.post | sed 's/@{SERVER_PORT}/'${port}'/' | sed 's/@{DEBUG_MODE}/'${debugMode}'/' >> "${app}.tmp"
+  cat flask.post | sed 's/@{SERVER_ADDRESS}/'${addr}'/' | sed 's/@{SERVER_PORT}/'${port}'/' | sed 's/@{DEBUG_MODE}/'${debugMode}'/' >> "${app}.tmp"
   mv "${app}.tmp" "${app}"
 }
 
@@ -58,7 +62,7 @@ monitor_provision() {
       log "Received event '${event}' for provision: ${file}"
       [ ! -f "${file}" ] && COMPLETE=yes log " -> cannot process directory: ignored" && continue
 
-      build_py "mock.py" "${file}" "${SERVER_PORT}" True
+      build_py "mock.py" "${file}" "${SERVER_ADDR}" "${SERVER_PORT}" True
       touch "${file}.processed"
       event_guard "${file}" &
     done
@@ -89,13 +93,13 @@ def answer(e):
 EOF
 fi
 
-build_py "mock.py" "${default}" "${SERVER_PORT}" True
+build_py "mock.py" "${default}" "${SERVER_ADDR}" "${SERVER_PORT}" True
 
 # Monitor future provisions
 monitor_provision &
 
 # Start provision server
-build_py "admin.py" "admin.mid" "${ADMIN_PORT}" False
+build_py "admin.py" "admin.mid" "${SERVER_ADDR}" "${ADMIN_PORT}" False
 python3 admin.py &
 
 # Start mock server

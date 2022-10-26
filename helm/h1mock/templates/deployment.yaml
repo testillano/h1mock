@@ -46,14 +46,17 @@ spec:
           {{- if .Values.service.verbosity.enabled }}
           - "verbose"
           {{- end }}
+          {{- if .Values.service.ipv6.enabled }}
+          - "true"
+          {{- end }}
           volumeMounts:
           - name: {{ .Values.service.name }}-provision-config-vol
             mountPath: "/config"
           # livenessProbe & readinessProbe look for admin port, as main app is
           #  blocking on startup and will restart the container in case of crash.
-          livenessProbe:
+          readinessProbe:
             tcpSocket:
-              port: {{ .Values.service.traffic_port }}
+              port: {{ .Values.service.admin_port }}
             initialDelaySeconds: 10
             periodSeconds: 5
 
@@ -63,6 +66,6 @@ spec:
             #  port: {{ .Values.service.admin_port }}
             tcpSocket:
               port: {{ .Values.service.admin_port }}
-            initialDelaySeconds: 10
-            periodSeconds: 5
+            initialDelaySeconds: 15
+            periodSeconds: 20
 
