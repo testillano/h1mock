@@ -1,10 +1,18 @@
 # Python flask HTTP/1 Mock
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Documentation](https://codedocs.xyz/testillano/h1mock.svg)](https://codedocs.xyz/testillano/h1mock/index.html)
 [![Ask Me Anything !](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://github.com/testillano)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/testillano/h1mock/graphs/commit-activity)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-no-red.svg)](https://github.com/testillano/h1mock/graphs/commit-activity)
 [![Publish docker images and helm charts](https://github.com/testillano/h1mock/actions/workflows/publish.yml/badge.svg)](https://github.com/testillano/h1mock/actions/workflows/publish.yml)
+
+> **Archived**: this repository is no longer maintained and is kept read-only
+> for reference. Use [h2agent](https://github.com/testillano/h2agent) instead: a
+> more versatile mock which also serves HTTP/1 (HTTP/1.0, HTTP/1.1 and the
+> HTTP/2 upgrade, through its `nghttpx` front-end, see
+> [its README](https://github.com/testillano/h2agent#how-can-you-use-it-)),
+> besides HTTP/2, with a programmable mock model (matching, states,
+> transformations, events) and a client mode. The published `h1mock` images
+> and charts remain available.
 
 HTTP/1 mock server built with Python Flask and supported by docker/kubernetes.
 
